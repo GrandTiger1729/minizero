@@ -43,6 +43,7 @@ protected:
     void genConfiguration(config::ConfigureLoader& cl, const std::string& sConfigFile);
     bool readConfiguration(config::ConfigureLoader& cl, const std::string& sConfigFile, const std::string& sConfigString);
     virtual void runConsole();
+    virtual void runConsoleGtp();
     virtual void runSelfPlay();
     virtual void runZeroServer();
     virtual void runZeroTrainingName();

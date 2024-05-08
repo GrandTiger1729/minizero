@@ -149,7 +149,9 @@ std::string OthelloEnv::toString() const
     std::ostringstream oss;
     oss << " " << getCoordinateString() << std::endl;
     for (int row = board_size_ - 1; row >= 0; --row) {
+        // for (int row = 0; row < board_size_; ++row) {
         oss << (row >= 9 ? "" : " ") << row + 1 << " ";
+        // oss << (row >= 9 ? "" : " ") << board_size_ - row << " ";
         for (int col = 0; col < board_size_; ++col) {
             if (board_.get(Player::kPlayer1)[row * board_size_ + col] == 1) {
                 oss << " O ";
@@ -160,6 +162,7 @@ std::string OthelloEnv::toString() const
             }
         }
         oss << (row >= 9 ? "" : " ") << row + 1 << std::endl;
+        // oss << (row >= 9 ? "" : " ") << board_size_ - row << std::endl;
     }
     oss << " " << getCoordinateString() << std::endl;
     return oss.str();

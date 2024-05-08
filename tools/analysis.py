@@ -65,12 +65,16 @@ def get_myDict(lines, iter):
                 counter += 1
             if index == 0:  # op.log
                 ret4 = re.findall(r'(nn\sstep)\s(\d+),', line)
+                # start = re.findall(r'(weight_iter_)')
                 if ret4 != [] and set_learner_training_display_step:
                     set_learner_training_display_step = False
                     learner_training_display_step = int(ret4[0][1])
+                    # learner_training_display_step = int(ret4[0][1]) - 600000
                 ret5 = re.findall(r'(Optimization_Done)\s(\d+)', line)
                 if ret5 != [] and set_learner_training_step:
                     learner_training_step = int(ret5[0][1])
+                    # learner_training_step = int(ret5[0][1]) - 600000
+                    # learner_training_display_step = (learner_training_step - learner_training_display_step)
                     set_learner_training_step = False
             if index == 1:  # Training.log
                 ret1 = re.findall(r'((\[.*\])\s\[Iteration\]\s={5}(\d+)={5})', line)

@@ -15,6 +15,7 @@ void BaseActor::reset()
 void BaseActor::resetSearch()
 {
     nn_evaluation_batch_id_ = -1;
+    continue_search_ = true;
     if (!search_) { search_ = createSearch(); }
     search_->reset();
 }

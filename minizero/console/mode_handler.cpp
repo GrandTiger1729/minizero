@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include "actor_group_gtp.h"
+#include "console_gtp.h"
 namespace minizero::console {
 
 using namespace minizero::utils;
@@ -15,6 +17,7 @@ using namespace minizero::utils;
 ModeHandler::ModeHandler()
 {
     RegisterFunction("console", this, &ModeHandler::runConsole);
+    RegisterFunction("console_gtp", this, &ModeHandler::runConsoleGtp);
     RegisterFunction("sp", this, &ModeHandler::runSelfPlay);
     RegisterFunction("zero_server", this, &ModeHandler::runZeroServer);
     RegisterFunction("zero_training_name", this, &ModeHandler::runZeroTrainingName);
@@ -136,6 +139,18 @@ void ModeHandler::runConsole()
     }
 }
 
+void ModeHandler::runConsoleGtp()
+{
+    console::ConsoleGtp console;
+    std::string command;
+    console.initialize();
+    std::cerr << "Successfully started console gtp mode" << std::endl;
+    while (getline(std::cin, command)) {
+        if (command == "quit") { break; }
+        console.executeCommand(command);
+    }
+}
+
 void ModeHandler::runSelfPlay()
 {
     actor::ActorGroup ag;
@@ -160,18 +175,37 @@ void ModeHandler::runZeroTrainingName()
 
 void ModeHandler::runEnvTest()
 {
-    Environment env;
-    env.reset();
-    while (!env.isTerminal()) {
-        std::vector<Action> legal_actions = env.getLegalActions();
-        int index = utils::Random::randInt() % legal_actions.size();
-        env.act(legal_actions[index]);
-    }
-    std::cout << env.toString() << std::endl;
+    int cnt = 0;
+    int n = 1;
+    boost::posix_time::ptime start_ptime = utils::TimeSystem::getLocalTime();
+    std::vector<std::string> actions{"i0i1", "e9e8", "i1f1", "e8e7", "f1f7", "e7e8", "f7f8", "e8e7", "f8f7", "e7e8", "f7f8", "e8e7", "f8f7", "e7e8", "f7f8", "e8e7", "f8f7", "e7e8", "f7f8", "e8e7"};
+    for (int t = 0; t < n; t++) {
+        Environment env;
+        env.reset();
+        while (!env.isTerminal()) {
+            std::vector<Action> legal_actions = env.getLegalActions();
+            int index = utils::Random::randInt() % legal_actions.size();
+            env.getFeatures();
+            env.act(legal_actions[index]);
+            // Action action = Action({(cnt % 2 == 0 ? "b" : "w"), actions[cnt]});
+            // std::cerr << env.isLegalAction(action) << std::endl;
+            // env.act(action);
+            // std::cerr << env.toString() << std::endl;
+            cnt++;
+            // break;
+        }
+        std::cout << env.toString() << std::endl;
+        std::cout << env.getEvalScore() << std::endl;
 
-    EnvironmentLoader env_loader;
-    env_loader.loadFromEnvironment(env);
-    std::cout << env_loader.toString() << std::endl;
+        EnvironmentLoader env_loader;
+        env_loader.loadFromEnvironment(env);
+        std::cout << env_loader.toString() << std::endl;
+    }
+    std::cerr << "Completed " << n << " Games: " << std::endl;
+    std::cerr << "Spent Time = " << (utils::TimeSystem::getLocalTime() - start_ptime).total_milliseconds() / 1000.0f << " (s)" << std::endl;
+    std::cerr << "Average Time Spent per Game = " << (utils::TimeSystem::getLocalTime() - start_ptime).total_milliseconds() / 1000.0f / n << " (s)" << std::endl;
+    std::cerr << "Average Time Spent per Move = " << (utils::TimeSystem::getLocalTime() - start_ptime).total_milliseconds() / 1000.0f / cnt << " (s)" << std::endl;
+    std::cerr << "Average Moves per Game = " << 1.0f * cnt / n << std::endl;
 }
 
 } // namespace minizero::console

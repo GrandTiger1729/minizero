@@ -16,12 +16,16 @@ namespace minizero::actor {
 class ThreadSharedData : public utils::BaseSharedData {
 public:
     int getAvailableActorIndex();
+    void resetActor(int actor_id);
     void outputGame(const std::shared_ptr<BaseActor>& actor);
     std::pair<int, int> calculateTrainingDataRange(const std::shared_ptr<BaseActor>& actor);
 
     bool do_cpu_job_;
+    bool all_search_done_;
     int actor_index_;
-    std::mutex mutex_;
+    int game_index_;
+    std::recursive_mutex mutex_;
+    std::vector<int> actors_game_index_;
     std::vector<std::shared_ptr<BaseActor>> actors_;
     std::vector<std::shared_ptr<network::Network>> networks_;
     std::vector<std::vector<std::shared_ptr<network::NetworkOutput>>> network_outputs_;
@@ -51,6 +55,8 @@ public:
     void initialize() override;
     void summarize() override {}
 
+    inline std::shared_ptr<ThreadSharedData> getSharedData() { return std::static_pointer_cast<ThreadSharedData>(shared_data_); }
+
 protected:
     virtual void createNeuralNetworks();
     virtual void createActors();
@@ -60,7 +66,6 @@ protected:
 
     void createSharedData() override { shared_data_ = std::make_shared<ThreadSharedData>(); }
     std::shared_ptr<utils::BaseSlaveThread> newSlaveThread(int id) override { return std::make_shared<SlaveThread>(id, shared_data_); }
-    inline std::shared_ptr<ThreadSharedData> getSharedData() { return std::static_pointer_cast<ThreadSharedData>(shared_data_); }
 
     bool running_;
     std::deque<std::string> commands_;

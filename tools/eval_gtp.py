@@ -9,11 +9,11 @@ import matplotlib.pyplot as plt
 
 def getPlayerName(lines, black=True):
     if black:
-        command = 'BlackCommand'
+        command = 'Black'
     else:
-        command = 'WhiteCommand'
+        command = 'White'
     try:
-        return lines.split(command)[1].split('\n')[0].split('weight_iter_')[1][:-4]
+        return lines.split(command)[1].split('\n')[0].split('weight_iter_')[1][:-3]
     except BaseException:
         return '0'
 
@@ -27,49 +27,35 @@ def getWinRate(file, game0_white):
         else:
             player1 = getPlayerName(lines, True)
             player2 = getPlayerName(lines, False)
-        # print(lines.split('ERR_MSG\n'))
-        # print(lines.split('ERR_MSG\n')[1].split('\n'))
-        lines = lines.split('ERR_MSG\n')[1].split('\n')[:-1]
-        total = len(lines)
+
+        total = 0
         p1_black_win = 0
         p1_white_win = 0
         draw = 0
         dup_game = 0
 
-        if game0_white:
-            white_games = 0
-            resign_win = 'W+'
-        else:
-            white_games = 1
-            resign_win = 'B+'
-        for line_id, line in enumerate(lines):
+        part1 = lines.split('Black')[1].split('\n')[2:-1]
+        total += len(part1)
+
+        for line_id, line in enumerate(part1):
             game_info = line.split('\t')
-            # 0 GAME, 1	RES_B, 2 RES_W, 3 RES_R, 4 ALT, 5 DUP, 11 ERR, 12 ERR_MSG
-            if game_info[11] != '0':
-                print(f'{file}, Line {line_id}: {game_info[12]}')
-                total -= 1
-            elif int(game_info[4]) == white_games:
-                if (game_info[1] == '-1.000000' or resign_win in game_info[1]):
-                    if game_info[5] != '-' and ~game_info[5].find('?'):
-                        dup_game += 1
-                    else:
-                        p1_white_win += 1
-                elif game_info[1] == '0.000000' or game_info[1] == '0':
-                    if game_info[5] != '-' and ~game_info[5].find('?'):
-                        dup_game += 1
-                    else:
-                        draw += 1
-            elif (game_info[1] == '1.000000' or resign_win in game_info[1]):
-                if game_info[5] != '-' and ~game_info[5].find('?'):
-                    dup_game += 1
-                else:
-                    p1_black_win += 1
-            elif game_info[1] == '0.000000' or game_info[1] == '0':
-                if game_info[5] != '-' and ~game_info[5].find('?'):
-                    dup_game += 1
-                else:
-                    draw += 1
-        p1_win_rate = (p1_black_win + p1_white_win + draw / 2) / (total-dup_game)
+            if game_info[1] == "1.000000":
+                p1_black_win += 1
+            elif game_info[1] == "0.000000":
+                draw += 1
+        
+        part2 = lines.split('Black')[2].split('\n')[2:-1]
+        total += len(part2)
+
+        for line_id, line in enumerate(part2):
+            game_info = line.split('\t')
+
+            if game_info[1] == "-1.000000":
+                p1_white_win += 1
+            elif game_info[1] == "0.000000":
+                draw += 1
+
+        p1_win_rate = (p1_black_win + p1_white_win + draw / 2) / (total - dup_game)
         return player1, player2, round(p1_win_rate, 4), p1_black_win, p1_white_win, draw, total, dup_game
 
 
@@ -89,14 +75,24 @@ def plot_elo_curve(fig_name, *args):
     ax.set_ylabel('elo rating')
     for i, (its, elos) in enumerate(args):
         player_name = input(f'player{i+1} name: ')
-        for j in range(len(its)):
-            its[j] -= 600000
-        ax.plot(its,elos, label=player_name)
+        ax.plot([0] + its, [0] + elos, label=player_name)
+    ax.legend()
+    plt.savefig(fig_name)
+
+def plot_win_rate_curve(fig_name, *args):
+
+    _, ax = plt.subplots()
+    ax.set_xlabel('nn steps')
+    ax.set_ylabel('win rate')
+    ax.spines['left'].set_position(('data', 0))
+    for i, (its, win_rates) in enumerate(args):
+        player_name = input(f'player{i+1} name: ')
+        ax.plot([0] + its, [0] + win_rates, label=player_name)
     ax.legend()
     plt.savefig(fig_name)
 
 
-def eval(dir, fout_name, player1_elo_file, game0_white, step_num, plot_elo):
+def eval(dir, fout_name, player1_elo_file, game0_white, step_num, plot_elo, plot_win_rate):
     win_rates = []
     black_wins = []
     white_wins = []
@@ -106,7 +102,7 @@ def eval(dir, fout_name, player1_elo_file, game0_white, step_num, plot_elo):
     player2s = []
     dup_games = []
     for subdir in os.listdir(dir):
-        datfile = os.path.join(dir, subdir, f'{subdir}.dat')
+        datfile = os.path.join(dir, subdir, f'{subdir}.txt')
         if os.path.isfile(datfile):
             player1, player2, win, black_win, white_win, draw, total, dup_game = getWinRate(
                 datfile, game0_white)
@@ -156,6 +152,9 @@ def eval(dir, fout_name, player1_elo_file, game0_white, step_num, plot_elo):
             plot_elo_curve(os.path.join(dir, f'{fout_name}.png'),
                            [result['P1'].to_list(), result['P1 Elo'].to_list()],
                            [result['P2'].to_list(), result['P2 Elo'].to_list()])
+        if plot_win_rate:
+            plot_win_rate_curve(os.path.join(dir, f'{fout_name}.png'),
+                           [result['P1'].to_list(), result['WinRate'].to_list()])
     else:
         cur_elo = 0
         elos = []
@@ -166,7 +165,11 @@ def eval(dir, fout_name, player1_elo_file, game0_white, step_num, plot_elo):
         if plot_elo:
             plot_elo_curve(os.path.join(dir, f'{fout_name}.png'),
                            [result['P1'].to_list(), result['P1 Elo'].to_list()])
+        if plot_win_rate:
+            plot_win_rate_curve(os.path.join(dir, f'{fout_name}.png'),
+                           [result['P1'].to_list(), result['WinRate'].to_list()])
     result.to_csv(os.path.join(dir, f'{fout_name}.csv'), index=False)
+    print(dir)
     print(result.to_string(index=False))
 
 
@@ -184,14 +187,17 @@ if __name__ == '__main__':
                         help='training step')
     parser.add_argument('--plot', action='store_true', dest='plot_elo',
                         help='plot elo curve')
+    parser.add_argument('--pw', action='store_true', dest='plot_win_rate',
+                        help='plot win_rate curve')
     args = parser.parse_args()
     if args.dir:
         if os.path.isdir(args.dir):
             eval(args.dir, args.fout_name, args.player1_elo_file,
-                 args.game0_white, args.step_num, args.plot_elo)
+                 args.game0_white, args.step_num, args.plot_elo, args.plot_win_rate)
         else:
             print(f'\"{args.dir}\" does not exist!')
             exit(1)
     else:
         parser.print_help()
         exit(1)
+

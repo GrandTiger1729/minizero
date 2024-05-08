@@ -86,6 +86,61 @@ void SGFLoader::reset()
     actions_.clear();
 }
 
+// int SGFLoader::boardCoordinateStringToActionID(const std::string& board_coordinate_string, int board_size)
+// {
+//     std::string tmp = board_coordinate_string;
+//     std::transform(tmp.begin(), tmp.end(), tmp.begin(), ::toupper);
+//     if (tmp == "PASS") { return board_size * board_size; }
+
+//     if (board_coordinate_string.size() < 2) { return -1; }
+//     int x = std::toupper(board_coordinate_string[0]) - 'A' + (std::toupper(board_coordinate_string[0]) > 'I' ? -1 : 0);
+//     int y = atoi(board_coordinate_string.substr(1).c_str()) - 1;
+//     return y * board_size + x;
+// }
+
+// std::string SGFLoader::actionIDToBoardCoordinateString(int action_id, int board_size)
+// {
+//     assert(action_id >= 0 && action_id <= board_size * board_size);
+
+//     if (action_id == board_size * board_size) { return "PASS"; }
+//     int x = action_id % board_size;
+//     int y = action_id / board_size;
+//     std::ostringstream oss;
+//     oss << static_cast<char>(x + 'A' + (x >= 8)) << y + 1;
+//     return oss.str();
+// }
+
+// int SGFLoader::sgfStringToActionID(const std::string& sgf_string, int board_size)
+// {
+//     if (sgf_string.size() != 2) { return board_size * board_size; }
+//     int x = std::toupper(sgf_string[0]) - 'A';
+//     int y = (board_size - 1) - (std::toupper(sgf_string[1]) - 'A');
+//     return y * board_size + x;
+// }
+
+// std::string SGFLoader::actionIDToSGFString(int action_id, int board_size)
+// {
+//     assert(action_id >= 0 && action_id <= board_size * board_size);
+
+//     if (action_id == board_size * board_size) { return ""; }
+//     int x = action_id % board_size;
+//     int y = action_id / board_size;
+//     std::ostringstream oss;
+//     oss << static_cast<char>(x + 'a') << static_cast<char>(((board_size - 1) - y) + 'a');
+//     return oss.str();
+// }
+
+// std::string SGFLoader::trimSpace(const std::string& s) const
+// {
+//     bool skip = false;
+//     std::string new_s;
+//     for (const auto& c : s) {
+//         skip = (c == '[' ? true : (c == ']' ? false : skip));
+//         if (skip || c != ' ') { new_s += c; }
+//     }
+//     return new_s;
+// }
+
 int SGFLoader::boardCoordinateStringToActionID(const std::string& board_coordinate_string, int board_size)
 {
     std::string tmp = board_coordinate_string;
@@ -94,7 +149,8 @@ int SGFLoader::boardCoordinateStringToActionID(const std::string& board_coordina
 
     if (board_coordinate_string.size() < 2) { return -1; }
     int x = std::toupper(board_coordinate_string[0]) - 'A' + (std::toupper(board_coordinate_string[0]) > 'I' ? -1 : 0);
-    int y = atoi(board_coordinate_string.substr(1).c_str()) - 1;
+    int y = 7 - (atoi(board_coordinate_string.substr(1).c_str()) - 1);
+    // int y = atoi(board_coordinate_string.substr(1).c_str()) - 1;
     return y * board_size + x;
 }
 
@@ -104,7 +160,8 @@ std::string SGFLoader::actionIDToBoardCoordinateString(int action_id, int board_
 
     if (action_id == board_size * board_size) { return "PASS"; }
     int x = action_id % board_size;
-    int y = action_id / board_size;
+    int y = 7 - (action_id / board_size);
+    // int y = action_id / board_size;
     std::ostringstream oss;
     oss << static_cast<char>(x + 'A' + (x >= 8)) << y + 1;
     return oss.str();
@@ -114,7 +171,8 @@ int SGFLoader::sgfStringToActionID(const std::string& sgf_string, int board_size
 {
     if (sgf_string.size() != 2) { return board_size * board_size; }
     int x = std::toupper(sgf_string[0]) - 'A';
-    int y = (board_size - 1) - (std::toupper(sgf_string[1]) - 'A');
+    int y = 7 - ((board_size - 1) - (std::toupper(sgf_string[1]) - 'A'));
+    // int y = (board_size - 1) - (std::toupper(sgf_string[1]) - 'A');
     return y * board_size + x;
 }
 
@@ -124,7 +182,8 @@ std::string SGFLoader::actionIDToSGFString(int action_id, int board_size)
 
     if (action_id == board_size * board_size) { return ""; }
     int x = action_id % board_size;
-    int y = action_id / board_size;
+    int y = 7 - (action_id / board_size);
+    // int y = action_id / board_size;
     std::ostringstream oss;
     oss << static_cast<char>(x + 'a') << static_cast<char>(((board_size - 1) - y) + 'a');
     return oss.str();

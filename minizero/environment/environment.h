@@ -47,11 +47,17 @@ typedef minizero::env::puzzle2048::Puzzle2048EnvLoader EnvironmentLoader;
 typedef minizero::env::rubiks::RubiksAction Action;
 typedef minizero::env::rubiks::RubiksEnv Environment;
 typedef minizero::env::rubiks::RubiksEnvLoader EnvironmentLoader;
+#elif XIANGQI
+#include "xiangqi.h"
+typedef minizero::env::xiangqi::XiangqiAction Action;
+typedef minizero::env::xiangqi::XiangqiEnv Environment;
+typedef minizero::env::xiangqi::XiangqiEnvLoader EnvironmentLoader;
 #else
 #include "tictactoe.h"
 typedef minizero::env::tictactoe::TicTacToeAction Action;
 typedef minizero::env::tictactoe::TicTacToeEnv Environment;
 typedef minizero::env::tictactoe::TicTacToeEnvLoader EnvironmentLoader;
+
 #endif
 
 namespace minizero::env {
@@ -87,6 +93,9 @@ inline void setUpEnv()
     config::env_board_size = 4;
 #elif RUBIKS
     config::env_board_size = 3;
+#elif XIANGQI
+    config::env_board_size = 10;
+    xiangqi::initialize();
 #endif
 }
 

@@ -28,6 +28,8 @@ public:
     {
         alphazero_network_ = nullptr;
         muzero_network_ = nullptr;
+        continue_search_ = true;
+        is_end_game_ = false;
     }
 
     void reset() override;

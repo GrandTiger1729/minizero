@@ -41,6 +41,8 @@ public:
     virtual std::string getSearchInfo() const = 0;
     virtual void setNetwork(const std::shared_ptr<network::Network>& network) = 0;
     virtual std::shared_ptr<Search> createSearch() = 0;
+    bool continue_search_;
+    bool is_end_game_;
 
 protected:
     virtual std::vector<std::pair<std::string, std::string>> getActionInfo() const;

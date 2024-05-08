@@ -131,7 +131,12 @@ void Console::cmdPlay(const std::vector<std::string>& args)
     if (!checkArgument(args, 3, INT_MAX)) { return; }
     std::string action_string = args[2];
     std::vector<std::string> act_args;
-    for (unsigned int i = 1; i < args.size(); i++) { act_args.push_back(args[i]); }
+    std::string in = "";
+    for (unsigned int i = 1; i < args.size(); i++) {
+        act_args.push_back(args[i]);
+        in += args[i] + " ";
+    }
+    // std::cerr << "input: " << in << std::endl;
     if (!actor_->act(act_args) && !actor_->isEnvTerminal()) { return reply(ConsoleResponse::kFail, "Invalid action: \"" + action_string + "\""); }
     reply(ConsoleResponse::kSuccess, "");
 }
@@ -140,7 +145,7 @@ void Console::cmdBoardSize(const std::vector<std::string>& args)
 {
     if (!checkArgument(args, 2, 2)) { return; }
     minizero::config::env_board_size = stoi(args[1]);
-    initialize();
+    // initialize();
     reply(ConsoleResponse::kSuccess, "\n" + actor_->getEnvironment().toString());
 }
 
